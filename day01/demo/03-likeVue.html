@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Document</title>
-  <script src="../../node_modules/vue/dist/vue.js"></script>
+  <!-- <script src="../../node_modules/vue/dist/vue.js"></script> -->
 </head>
 <body>
   <!-- 写模板 -->
@@ -16,16 +16,44 @@
   <script>
     console.log(root);
 
-    // 第二步 创建实例
-    let app = new Vue( {
-      el: '#root',
-      data: {
-        name: '张三',
-        message: '是一个男人吗'
-      },
-    });
+    let regx = /\{\{(.+?)\}\}/g;
 
-    // 第三步 挂载： 这种用法的挂载在 vue.js 中帮我们实现了
+    // 步骤拆解
+    // 1. 拿到模板
+    // 2. 拿到数据（data）
+    // 3. 将数据和模板结合, 得到的是 HTML 元素 ( DOM 元素 )
+    // 4. 放到页面中
+
+    // 1
+    let tmpNode = document.querySelector('#root');  // 元素拿到了 模板就是他了
+    // 2
+    let data = {
+      name: '一个新name',
+      message: '一个消息'
+    }
+
+    // 3. 将数据放在模板中
+    // 一般都是使用 递归
+    // 现在这个案例中 template 是 DOM 元素
+    // 在真正的 Vue 源码中是 字符串 ..  DOM -> 字符串模板 -> VNode -> 真正的DOM
+    function compiler( template, data ) {
+      let childNodes = template.childNodes; //
+      for (let i = 0;i < childNodes.length; i++) {
+        let type = childNodes[i].nodeType; // nodeType 1 元素 3 文本节点
+        if (type === 3) {
+          // 文本节点,可以判断里面是否有 {{}} 插值
+          let txt = childNodes[i].nodeValue;  // 该属性只有文本节点才有意义
+
+          // 有没有双花括号???
+          txt.replace(regx, function (_, g) { // replace 使用正则匹配一次 函数就会被调用一次
+
+          })
+        } else if (type === 1) {
+          // 元素, 考虑它有没有子元素, 是否需要将其子元素进行 判断是否要插值
+           compiler( childNodes[i], data)
+        }
+      }
+    }
 
     console.log(root);
   </script>

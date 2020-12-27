@@ -14,27 +14,8 @@
   </div>
 
   <script>
-
     let regx = /\{\{(.+?)\}\}/g;
 
-    // 步骤拆解
-    // 1. 拿到模板
-    // 2. 拿到数据（data）
-    // 3. 将数据和模板结合, 得到的是 HTML 元素 ( DOM 元素 )
-    // 4. 放到页面中
-
-    // 1
-    let tmpNode = document.querySelector('#root');  // 元素拿到了 模板就是他了
-    // 2
-    let data = {
-      name: '一个新name',
-      message: '一个消息'
-    }
-
-    // 3. 将数据放在模板中
-    // 一般都是使用 递归
-    // 现在这个案例中 template 是 DOM 元素
-    // 在真正的 Vue 源码中是 字符串 ..  DOM -> 字符串模板 -> VNode -> 真正的DOM
     function compiler( template, data ) {
       let childNodes = template.childNodes; //
       for (let i = 0;i < childNodes.length; i++) {
@@ -65,26 +46,45 @@
       }
     }
 
-    // 利用 模板生成一个 需要被渲染的 HTML 标签 （ 准 真正在页面中显示的 标签）
-    let generateNode = tmpNode.cloneNode(true); // 注意这里是 DOM 元素, 可以这么用
+    function JGVue( options ) {
+      // 习惯：内部的数据使用下划线 开头，只读数据使用 $ 开头
+      this._data = options.data;
+      this._el = options.el;
+      
+      // 准备工作（准备模板）
+      this.$el = this._templateDOM = document.querySelector(this._el);
+      this._parent = this._templateDOM.parentNode;
 
-    console.log(tmpNode);
-    compiler(generateNode, data); // 将 坑 替换掉
-    console.log(generateNode);
+      // 渲染工作
+      this.render();
+    }
 
-    /*
-      我们此时是没有生成新的 template ,所以这里看到的 是直接在页面中就更新的数据,
-      因为 DOM 是引用类型, 我们这样做, 模板就没有了, 后续就没办法操作了
-    */
+    // 将模板 即 可数据，得到 HTML 加到页面中
+    JGVue.prototype.render = function () {
+      this.compiler()
+    }
 
-    // 4. 将 渲染好的HTML 放到页面当中
-    root.parentNode.replaceChild( generateNode, root);
+    // 编译，将 模板 与 数据结合 得到 真正的 DOM 元素
+    JGVue.prototype.compiler = function () {
+      // 用 模板 拷贝 得到一个 准DOM
+      let realHTMLDOM = this._templateDOM.cloneNode(true);
+      compiler(realHTMLDOM, this._data);
+      this.update( realHTMLDOM );
+    }
 
+    // 更新，将DOM元素放在页面
+    JGVue.prototype.update = function (real) {
+      this._parent.replaceChild(real, document.querySelector('#root'));
+    }
 
-    // 上面的思路有很大的问题:
-    // 1. Vue 使用上的 虚拟 Dom
-    // 2. 只考虑到了单属性 ({{name}}), 而 Vue 中大量的使用层级 ({{child.name.firstName}})
-    // 3. 代码没有整合
+    // 想想怎么用：
+    let app = new JGVue({
+      el: '#root',
+      data: {
+        name: 'jim',
+        message: 'info'
+      }
+    })
   </script>
 </body>
 </html>

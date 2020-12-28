@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Document</title>
+</head>
+<body>
+  <script>
+    function getValueByPath(obj, path) {
+      let paths = path.split('.');
+      let res = obj;
+      let prop;
+      while( prop = paths.shift() ) {
+        res = res[prop];
+      }
+      return res;
+    }
+
+    var o = {
+      a: {
+        b: {
+          c: {
+            d: {
+              e: '正确了'
+            }
+          }
+        }
+      }
+    };
+
+    let res = getValueByPath( o, 'a.b.c.d.e');
+    console.log(res);
+    console.log( getValueByPath( o, 'a.b.c'));
+  </script>
+</body>
+</html>

@@ -132,22 +132,30 @@
     // 这里是生成 render 函数，目的是缓存 抽象语法树 （我们使用的 虚拟DOM 来模拟）
     JGVue.prototype.createRenderFn = function () {
       let ast = getVNode(this._template);
+      console.log(ast);
 
       // Vue: 将 AST + data => VNode
       // 我们： 带有坑的 VNode + data => 含有数据的 VNode
       return function render () {
         // 将 带坑 的 VNode 转换为 带数据的 VNode
-        
+        let _tmp = combine(ast, this._data);
+        console.log(_tmp);
+        return _tmp;
       }
     }
 
     // 将虚拟DOM渲染到页面中：diff算法就在这儿
     JGVue.prototype.update = function () {
-
+      // 简化，直接生成 HTML DOM replaceChild 到页面中
     }
 
     let app = new JGVue({
-      el: '#root'
+      el: '#root',
+      data: {
+        name: '张三',
+        age: 12,
+        gender: 18
+      }
     })
   </script>
 </body>

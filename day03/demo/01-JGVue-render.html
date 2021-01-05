@@ -62,6 +62,34 @@
       return _vnode;
     }
     
+    // 将 vNode 转换为真正的 DOM
+    function parseVNode( vnode ) {
+      // 创建真实的DOM
+      let type = vnode.type;
+      let _node = null;
+      if(type === 3) {
+        return document.createTextNode(vnode.value); // 创建文本节点
+      } else if (type === 1) {
+        _node = document.createElement( vnode.tag );
+
+        // 属性
+        let data = vnode.data; // 现在data是键值对
+        Object.keys( data ).forEach((key) => {
+          let attrName = key;
+          let attrValue = data[key];
+          _node.setAttribute( attrName, attrValue);
+        })
+
+        // 子元素
+        let children = vnode.children;
+        children.forEach(subvnode => {
+           _node.appendChild(parseVNode(subvnode)); // 转换子元素
+        })
+
+        return _node;
+      }
+    }
+
     let regx = /\{\{(.+?)\}\}/g;
     // 根据路径访问对象成员
     function getValueByPath(obj, path) {
@@ -101,9 +129,11 @@
     }
 
     function JGVue ( options ) {
-      this._options = options;
+      // this._options = options;
       this._data = options.data;
-      this._template = document.querySelector(options.el);  // vue中是字符串，这里是DOM
+      let elm = document.querySelector(options.el);  // vue中是字符串，这里是DOM
+      this._template = elm;
+      this._parent = elm.parentNode;
 
       this.mount(); // 挂载
     }
@@ -149,8 +179,15 @@
     }
 
     // 将虚拟DOM渲染到页面中：diff算法就在这儿
-    JGVue.prototype.update = function () {
+    JGVue.prototype.update = function ( vnode ) {
       // 简化，直接生成 HTML DOM replaceChild 到页面中
+      // 父元素 replaceChild （新元素，旧元素）
+      let realDom = parseVNode(vnode)
+      console.log(realDom);
+
+      this._parent.replaceChild(realDom, document.querySelector('#root'));
+      // 这个算法是不负责任的
+      // 每次都会将页面中的DOM全部替换
     }
 
     let app = new JGVue({
@@ -158,7 +195,7 @@
       data: {
         name: '张三',
         age: 12,
-        gender: 18
+        gender: '女'
       }
     })
   </script>

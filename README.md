@@ -122,5 +122,11 @@ render 的作用是将 虚拟DOM 转换为 真正的DOM 加载到页面中
 - 我们在设置属性值的时候，伴随的 页面的数据更新
 
 ```js
-Object.defineProperty()
+Object.defineProperty(对象，'设置什么属性名', {
+  writeable
+  confiagble
+  enumberable: 控制属性是都可枚举，是不是可以 for in 取出来
+  set() {} 赋值触发
+  get() {} 取值触发
+})
 ```

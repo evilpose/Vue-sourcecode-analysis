@@ -122,11 +122,59 @@ render 的作用是将 虚拟DOM 转换为 真正的DOM 加载到页面中
 - 我们在设置属性值的时候，伴随的 页面的数据更新
 
 ```js
-Object.defineProperty(对象，'设置什么属性名', {
-  writeable
-  confiagble
-  enumberable: 控制属性是都可枚举，是不是可以 for in 取出来
-  set() {} 赋值触发
-  get() {} 取值触发
-})
+function defineReactive( target, key, value, enumerable ) {
+  // 函数内部就是一个局部作用域，这个 value 就只在函数内使用的变量 （闭包）
+  Object.defineProperty( target, key, {
+    configurable: true,
+    enumerable: !!enumerable,
+
+    get () {
+      console.log(`读取 o 的 ${key} 属性`)
+      return value;
+    },
+    set ( newVal ) {
+      console.log(`设置 o 的属性为 ${newVal} `)
+      value = newVal
+    }
+  })
+}
 ```
+
+实际开发中对象一般是有多级的
+
+```js
+let o = {
+  list: [
+    {}
+  ],
+  ads: [
+    {}
+  ],
+  user: {
+
+  }
+}
+```
+
+递归处理
+
+对于对象可以使用递归 响应式化，但是数组我们也需要处理
+
+- push 
+- pop
+- shift
+- unshift
+- reverse
+- sort
+- splice
+
+1. 在改变数组的数据的时候，要发出通知
+    1. Vue2 中 的缺陷，数组发生变化，设置 length 没法通知( Vue3 中使用 Proxy 的语法解决了这个问题)
+2. 加入的元素应该变成响应式的
+
+技巧：如果一个函数已经定义了，但是我们需要扩展其功能，我们一般的处理方法：
+
+1. 使用一个临时的函数名存储函数
+2. 重新定义原来的函数
+3. 定义扩展的功能
+4. 调用临时的那个函数

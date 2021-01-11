@@ -190,3 +190,19 @@ let o = {
 - 代理方法 ( app.name, app._data.name )
 - 事件模型 ( node: event 模块 )
 - vue 中 Observer 与 Watcher 和 Dep
+
+代理方法，就是要将 app._data 中的成员给 映射到 app 上
+
+由于需要在更新数据的时候，更新页面的内容
+所以 app._data 访问的成员与 app 访问的成员应该是同一个成员
+
+由于 app._data 已经是响应式的对象了，所以只需要让 app 访问的成员去访问 app._data 的对应的成员就可以了
+
+例如：
+
+````js
+app.name 转换为 app._data.name
+app.xxx 转换为 app._data.xxx
+````
+
+引入了一个函数 proxy( target, src, prop ) target 相当于上面的 app, src 相当于上面的 _data 或 app._data, prop 相当于name/xxx, 将target的操作 映射到 src.prop 上，这里是因为当时没有 `proxy` 语法 ( ES6 )

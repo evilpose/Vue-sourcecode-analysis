@@ -183,3 +183,10 @@ let o = {
 
 - 修改要进行响应式化的数组的原型 (__proto__)
 
+# 发布订阅模式
+
+任务：
+
+- 代理方法 ( app.name, app._data.name )
+- 事件模型 ( node: event 模块 )
+- vue 中 Observer 与 Watcher 和 Dep

@@ -206,3 +206,7 @@ app.xxx 转换为 app._data.xxx
 ````
 
 引入了一个函数 proxy( target, src, prop ) target 相当于上面的 app, src 相当于上面的 _data 或 app._data, prop 相当于name/xxx, 将target的操作 映射到 src.prop 上，这里是因为当时没有 `proxy` 语法 ( ES6 )
+
+之前处理的 rectify 方法已经不行了，我们需要一个新的方法来处理
+
+提供一个 Observer 的方法，在这个方法当中 对 属性进行处理，也可以将这个方法封装到 initData 方法中。

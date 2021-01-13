@@ -135,7 +135,8 @@
       this._template = elm;
       this._parent = elm.parentNode;
 
-      reactify(this._data, this /* 将 Vue 实例传入*/);
+      // reactify(this._data, this /* 将 Vue 实例传入*/);
+      this.initData(); // 将 data 进行响应式转换，进行代理
 
       this.mount(); // 挂载
     }
@@ -239,7 +240,12 @@
         set ( newVal ) {
           console.log(`设置的属性为 ${newVal} `)
 
-          value = reactify(newVal);
+          // 临时处理方式
+          if (typeof newVal === 'object' && newVal != null) {
+            value = reactify(newVal);
+          } else {
+            value = newVal;
+          }
 
           // 模板刷新（这 现在只是演示用）
           // 获取 vue 实例  watcher 就不会有这个问题
@@ -280,6 +286,39 @@
       }
     }
 
+    JGVue.prototype.initData = function () {
+      // 遍历 this._data 的成员，将 属性转换为响应式的，将 直接属性，代理到实例上
+      let keys = Object.keys( this._data );
+
+      // 响应式化
+      for (let i = 0; i < keys.length; i++ ){
+        // 这里将 对象 this._data[ keys[i] ] 变成响应式的
+        reactify( this._data, this);
+      }
+
+      // 代理
+      for( let i = 0; i < keys.length; i++ ){
+        // 将 this._data[ keys[i] ] 映射到 this[keys[i]] 上
+        // 就是要让 this 提供 keys[i] 这个属性
+        // 在访问这个属性的时候 相当于在访问 this._data 的属性
+
+        proxy( this, '_data', keys[i] );
+      }
+    };
+
+    // 将某一个对象的属性 访问 映射到 对象的某一个属性成员上
+    function proxy( target, prop, key ) {
+      Object.defineProperty( target, key, {
+        enumerable: true,
+        configurable: true,
+        get () {
+          return target[prop][key]
+        },
+        set (newVal) {
+          target[prop][key] = newVal;
+        }
+      }) 
+    }
 
     let app = new JGVue({
       el: '#root',

@@ -210,3 +210,76 @@ app.xxx 转换为 app._data.xxx
 之前处理的 rectify 方法已经不行了，我们需要一个新的方法来处理
 
 提供一个 Observer 的方法，在这个方法当中 对 属性进行处理，也可以将这个方法封装到 initData 方法中。
+
+## 接视 proxy
+
+```js
+app._data.name
+// vue 设计，不希望访问 _ 开头的数据
+// vue 中的潜规则：
+// _ 开头的数据默认为是私有属性
+// $ 开头的是只读数据
+app.name
+// 将 对 _data.xxx 的访问 交给里 实例
+
+// 重点：访问 app 的 xxx 就是在访问 app._data.xxx
+```
+
+假设：
+
+```js
+var o1 = { name: '张三' };
+// 要有一个对象 o2 ，在访问 o2.name 的时候想要访问的是 o1.name
+Object.defineProperty(o2, 'name',{
+  get(){
+    return o1.name;
+  }
+});
+```
+
+访问 app 的 xxx 就是在访问 app._data.xxx
+
+```js
+Object.defineProperty( app, 'name', {
+  get() {
+    return app._data.name;
+  }
+  set( newVal ) {}
+    app._data.name = newVal;
+})
+```
+
+将属性的操作转换为 参数
+
+```js
+fucntion proxy( app, key) {
+  Object.defineProperty( app, key, {
+    get() {
+      return app._data[key];
+    }
+    set( newVal ) {}
+      app._data[key] = newVal;
+  })
+}
+```
+
+问题：
+
+在 vue 中不仅仅只是有 data 属性, properties 等等 都会挂载到 vue 实例上
+
+```js
+fucntion proxy( app, prop,  key) {
+  Object.defineProperty( app, key, {
+    get() {
+      return app[prop][key];
+    }
+    set( newVal ) {}
+      app[prop][key] = newVal;
+  })
+}
+
+// 如果将 data 的成员映射到 实例上
+proxy( 实例, '_data', 属性名 ) 
+// 如果要 _properties 的成员映射到实例上
+proxy( 实例, '_properties, 属性名 )
+```

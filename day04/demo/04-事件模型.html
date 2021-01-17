@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Document</title>
+</head>
+<body>
+  <script>
+      // 全局的 event 对象，提供 on, off, emit 方法
+      var event = (function() {
+        var eventObj = { };
+        return {
+          // 注册事件，可以连续注册，可以注册多个事件
+          on: function ( type, handler ) {
+            (eventObj[ type ] || ( eventObj[ type ] = [])).push(handler);
+          },
+
+          /** 移除事件
+          * - 如果没有参数，移除所有事件
+          * - 如果只带有 事件名 参数，就移除这个事件名下的所有事件
+          * - 如果带有两个参数，那么就表示移除某一个事件的具体处理函数
+          * */
+          off: function ( type, handler ) {},
+
+          // 发射事件, 触发事件，包装参数，传递给事件处理函数
+          emit: function ( type ) {} 
+        }
+      }());
+
+      console.log(event);
+  </script>
+
+
+  <!-- <script>
+    event.on( 'click', () => {} );
+    event.on( 'click', () => {} );
+    event.on( 'click', () => {} );
+
+    event.on( 'meipo', () => {} );
+    event.on( 'meipo', () => {} );
+    event.on( 'meipo', () => {} );
+
+    // 别的事情
+
+    event.emit( 'click' );
+  </script> -->
+</body>
+</html>

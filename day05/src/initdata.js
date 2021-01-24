@@ -24,40 +24,39 @@ ARRAY_METHOD.forEach( method => {
   }
 });
 
-function defineReactive( target, key, value, enumerable ) {
-  // 函数内部就是一个局部作用域，这个 value 就只在函数内使用的变量 （闭包）
-  // 折中处理后 this 就是 vue 实例
-  let that = this;
+// 将某一个对象的属性 访问 映射到 对象的某一个属性成员上
+function proxy( target, prop, key ) {
+  Object.defineProperty( target, key, {
+    enumerable: true,
+    configurable: true,
+    get () {
+      return target[prop][key]
+    },
+    set (newVal) {
+      target[prop][key] = newVal;
+    }
+  }) 
+}
 
-  if( typeof value === 'Object' && value != null && !Array.isArray(value)) {
-    // 非数组的引用类型
-    reactify(value);  // 递归
+JGVue.prototype.initData = function () {
+  // 遍历 this._data 的成员，将 属性转换为响应式的，将 直接属性，代理到实例上
+  let keys = Object.keys( this._data );
+
+  // 响应式化
+  for (let i = 0; i < keys.length; i++ ){
+    // 这里将 对象 this._data[ keys[i] ] 变成响应式的
+    reactify( this._data, this);
   }
 
-  Object.defineProperty( target, key, {
-    configurable: true,
-    enumerable: !!enumerable,
+  // 代理
+  for( let i = 0; i < keys.length; i++ ){
+    // 将 this._data[ keys[i] ] 映射到 this[keys[i]] 上
+    // 就是要让 this 提供 keys[i] 这个属性
+    // 在访问这个属性的时候 相当于在访问 this._data 的属性
 
-    get () {
-      console.log(`读取 ${key} 属性`)
-      return value;
-    },
-    set ( newVal ) {
-      console.log(`设置的属性为 ${newVal} `)
-
-      // 临时处理方式
-      if (typeof newVal === 'object' && newVal != null) {
-        value = reactify(newVal);
-      } else {
-        value = newVal;
-      }
-
-      // 模板刷新（这 现在只是演示用）
-      // 获取 vue 实例  watcher 就不会有这个问题
-      that.mountComponent();
-    }
-  })
-}
+    proxy( this, '_data', keys[i] );
+  }
+};
 
 // 将对象响应式化
 function reactify (o, vm) {
@@ -91,36 +90,37 @@ function reactify (o, vm) {
   }
 }
 
-JGVue.prototype.initData = function () {
-  // 遍历 this._data 的成员，将 属性转换为响应式的，将 直接属性，代理到实例上
-  let keys = Object.keys( this._data );
+function defineReactive( target, key, value, enumerable ) {
+  // 函数内部就是一个局部作用域，这个 value 就只在函数内使用的变量 （闭包）
+  // 折中处理后 this 就是 vue 实例
+  let that = this;
 
-  // 响应式化
-  for (let i = 0; i < keys.length; i++ ){
-    // 这里将 对象 this._data[ keys[i] ] 变成响应式的
-    reactify( this._data, this);
+  if( typeof value === 'Object' && value != null && !Array.isArray(value)) {
+    // 非数组的引用类型
+    reactify(value);  // 递归
   }
 
-  // 代理
-  for( let i = 0; i < keys.length; i++ ){
-    // 将 this._data[ keys[i] ] 映射到 this[keys[i]] 上
-    // 就是要让 this 提供 keys[i] 这个属性
-    // 在访问这个属性的时候 相当于在访问 this._data 的属性
-
-    proxy( this, '_data', keys[i] );
-  }
-};
-
-// 将某一个对象的属性 访问 映射到 对象的某一个属性成员上
-function proxy( target, prop, key ) {
   Object.defineProperty( target, key, {
-    enumerable: true,
     configurable: true,
+    enumerable: !!enumerable,
+
     get () {
-      return target[prop][key]
+      console.log(`读取 ${key} 属性`)
+      return value;
     },
-    set (newVal) {
-      target[prop][key] = newVal;
+    set ( newVal ) {
+      console.log(`设置的属性为 ${newVal} `)
+
+      // 临时处理方式
+      if (typeof newVal === 'object' && newVal != null) {
+        value = reactify(newVal);
+      } else {
+        value = newVal;
+      }
+
+      // 模板刷新（这 现在只是演示用）
+      // 获取 vue 实例  watcher 就不会有这个问题
+      that.mountComponent();
     }
-  }) 
+  })
 }

@@ -60,7 +60,7 @@ JGVue.prototype.initData = function () {
 
 // 将对象响应式化
 function reactify (o, vm) {
-  let keys = Object.keys(o);
+  let keys = Object.keys(o);  // 没有对 o 本身进行响应式处理
 
   for( let i = 0; i < keys.length; i++ ){
     let key = keys[ i ];  // 属性名

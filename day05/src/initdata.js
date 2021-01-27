@@ -13,7 +13,7 @@ ARRAY_METHOD.forEach( method => {
   array_methods[method] = function () {
     // 调用原来的方法
     console.log('调用的是拦截的' + method + '方法');
-
+    console.log(arguments)
     // 将数据进行响应式化
     for( let i = 0; i < arguments.length; i++ ){
       observe(arguments[i]); // 这里还是没办法解决，在引入 watcher 之后解决！
@@ -63,6 +63,12 @@ function observe ( obj, vm ) {
     obj.__proto__ = array_methods;
     for( let i = 0;i < obj.length;i++ ) {
       observe( obj[i], vm ) // 递归处理每一个数组元素
+      defineReactive.call(vm, obj, i, obj[ i ], true);
+      /** 
+       * 上面这个操作有点疑问，这样操作会直接把数组给响应式化了，index 对应 值
+       * 这样就可以直接通过索引值修改数组中的元素,但是Vue2.0里面是不支持这样的
+       * 在3.0里面通过了 proxy 的操作可以达到
+       */
     }
   } else {
     // 对其成员进行处理
@@ -106,7 +112,10 @@ function defineReactive( target, key, value, enumerable ) {
 
       // 模板刷新（这 现在只是演示用）
       // 获取 vue 实例  watcher 就不会有这个问题
-      that.mountComponent();
+      // that.mountComponent();
+      typeof that.mountComponent === 'function' && that.mountComponent();
+      // 数组现在没有参与页面的渲染
+      // 所以在数组上进行响应式的处理 不需要页面的刷新 即使这里无法调用也没有关系
     }
   })
 }

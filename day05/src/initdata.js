@@ -16,7 +16,7 @@ ARRAY_METHOD.forEach( method => {
 
     // 将数据进行响应式化
     for( let i = 0; i < arguments.length; i++ ){
-      reactify(arguments[i]);
+      observe(arguments[i]); // 这里还是没办法解决，在引入 watcher 之后解决！
     }
     
     let res =  Array.prototype[method].apply(this, arguments);
@@ -43,10 +43,7 @@ JGVue.prototype.initData = function () {
   let keys = Object.keys( this._data );
 
   // 响应式化
-  for (let i = 0; i < keys.length; i++ ){
-    // 这里将 对象 this._data[ keys[i] ] 变成响应式的
-    reactify( this._data, this);
-  }
+  observe( this._data , this );
 
   // 代理
   for( let i = 0; i < keys.length; i++ ){
@@ -58,35 +55,22 @@ JGVue.prototype.initData = function () {
   }
 };
 
-// 将对象响应式化
-function reactify (o, vm) {
-  let keys = Object.keys(o);  // 没有对 o 本身进行响应式处理
-
-  for( let i = 0; i < keys.length; i++ ){
-    let key = keys[ i ];  // 属性名
-    let value = o[key];
-    if(Array.isArray(value)) {
-      // 数组
-      value.__proto__ = array_methods;  // 数组就响应式了
-      for( let j = 0; j < value.length; j++) {
-        reactify( value[j] , vm); //递归
-      }
-    } else {
-      // 对象或者值类型
-      defineReactive.call(vm, o, key, value, true);
+/** 将对象 o 变成响应式的, vm 就是 vue 实例，为了在调用时处理上下文 */
+function observe ( obj, vm ) {
+  // 之前没有对 obj 本身继续操作，这一次直接对 obj 进行判断
+  if ( Array.isArray( obj) ) {
+    // 对其每个元素进行处理
+    obj.__proto__ = array_methods;
+    for( let i = 0;i < obj.length;i++ ) {
+      observe( obj[i], vm ) // 递归处理每一个数组元素
     }
-
-    // 只需要在这里添加代理即可 （问题：在这里写的代码回递归）
-    // 如果在这里 将属性映射到 Vue 实例上，那么就表示 Vue 实例可以使用属性 key
-    /*
-      {
-        data: {
-          name: 'jack',
-          child: { name: 'jim'}
-        }
-      }
-    */
-
+  } else {
+    // 对其成员进行处理
+    let keys = Object.keys(obj);
+    for (let i = 0; i < keys.length;i++ ){
+      let prop = keys[ i ]; // 属性名
+      defineReactive.call(vm, obj, prop, obj[ prop ], true);
+    }
   }
 }
 
@@ -95,10 +79,11 @@ function defineReactive( target, key, value, enumerable ) {
   // 折中处理后 this 就是 vue 实例
   let that = this;
 
-  if( typeof value === 'Object' && value != null && !Array.isArray(value)) {
+  if( typeof value === 'object' && value != null) {
     // 非数组的引用类型
-    reactify(value);  // 递归
+    observe(value);  // 递归
   }
+
 
   Object.defineProperty( target, key, {
     configurable: true,
@@ -111,12 +96,13 @@ function defineReactive( target, key, value, enumerable ) {
     set ( newVal ) {
       console.log(`设置的属性为 ${newVal} `)
 
-      // 临时处理方式
+      // 目的
+      // 将重新赋值的数据变成响应式的，因此，如果传入的是对象类型，那么就需要使用 observe 将其转换成 响应式 
       if (typeof newVal === 'object' && newVal != null) {
-        value = reactify(newVal);
-      } else {
-        value = newVal;
+        observe(newVal);
       }
+
+      value = newVal;
 
       // 模板刷新（这 现在只是演示用）
       // 获取 vue 实例  watcher 就不会有这个问题

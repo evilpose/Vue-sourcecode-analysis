@@ -249,7 +249,7 @@
     }
 
     // 将对象响应式化
-    function reactify (o, vm) {
+    function reactify (o, vm) {  // 没有对 o 本身进行响应式处理， 是对 o 的成员进行响应式处理
       let keys = Object.keys(o);
 
       for( let i = 0; i < keys.length; i++ ){

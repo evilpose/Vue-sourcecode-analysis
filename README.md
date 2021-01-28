@@ -384,3 +384,13 @@ watcher 会有一些方法:
 - cleanupDep() 简单理解为清楚队列
 
 watcher有一个属性 vm 表示的就是 当前的 vue 实例
+
+# 引入 Dep 对象
+
+该对象提供 依赖收集 ( depend ) 的功能, 和 派发更新 ( notify ) 的功能
+
+在 notify 中去调用 watcher 的 update 方法
+
+
+
+# Watcher 与 Dep

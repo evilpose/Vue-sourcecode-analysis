@@ -63,7 +63,7 @@ function observe ( obj, vm ) {
     obj.__proto__ = array_methods;
     for( let i = 0;i < obj.length;i++ ) {
       observe( obj[i], vm ) // 递归处理每一个数组元素
-      defineReactive.call(vm, obj, i, obj[ i ], true);
+      // defineReactive.call(vm, obj, i, obj[ i ], true);
       /** 
        * 上面这个操作有点疑问，这样操作会直接把数组给响应式化了，index 对应 值
        * 这样就可以直接通过索引值修改数组中的元素,但是Vue2.0里面是不支持这样的
@@ -81,15 +81,14 @@ function observe ( obj, vm ) {
 }
 
 function defineReactive( target, key, value, enumerable ) {
-  // 函数内部就是一个局部作用域，这个 value 就只在函数内使用的变量 （闭包）
-  // 折中处理后 this 就是 vue 实例
-  let that = this;
 
+  // 函数内部就是一个局部作用域，这个 value 就只在函数内使用的变量 （闭包）
   if( typeof value === 'object' && value != null) {
     // 非数组的引用类型
     observe(value);  // 递归
   }
 
+  let dep = new Dep()
 
   Object.defineProperty( target, key, {
     configurable: true,
@@ -102,6 +101,8 @@ function defineReactive( target, key, value, enumerable ) {
     set ( newVal ) {
       console.log(`设置的属性为 ${newVal} `)
 
+      if ( value === newVal ) return;
+
       // 目的
       // 将重新赋值的数据变成响应式的，因此，如果传入的是对象类型，那么就需要使用 observe 将其转换成 响应式 
       if (typeof newVal === 'object' && newVal != null) {
@@ -110,12 +111,8 @@ function defineReactive( target, key, value, enumerable ) {
 
       value = newVal;
 
-      // 模板刷新（这 现在只是演示用）
-      // 获取 vue 实例  watcher 就不会有这个问题
-      // that.mountComponent();
-      typeof that.mountComponent === 'function' && that.mountComponent();
-      // 数组现在没有参与页面的渲染
-      // 所以在数组上进行响应式的处理 不需要页面的刷新 即使这里无法调用也没有关系
+      // 派发更新, 找到全局的 watcher , 调用 update
+      dep.notify();
     }
   })
 }

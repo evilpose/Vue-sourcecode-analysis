@@ -96,6 +96,7 @@ function defineReactive( target, key, value, enumerable ) {
 
     get () {
       console.log(`读取 ${key} 属性`)
+      dep.depend();
       return value;
     },
     set ( newVal ) {

@@ -1,6 +1,7 @@
 /**
  *  watcher 观测者, 用于 发射更新的行为
  */
+let watcherid = 0;
 class watcher {
   /**
    * 
@@ -14,6 +15,8 @@ class watcher {
     this.vm = vm;
     this.getter = expOrFn;
 
+    this.id = watcherid++;
+
     this.deps = [];   // 依赖项
     this.depIds = {}; // 是一个Set类型,用于保证 依赖项 的唯一性 ( 简化的代码暂不实现这一块 )
 
@@ -24,7 +27,11 @@ class watcher {
 
   /** 计算 触发 getter  */
   get () {
+    pushTarget(this);
+
     this.getter.call( this.vm, this.vm );  // 解决了上下文的问题
+
+    popTarget();
   }
 
   /**
@@ -44,5 +51,10 @@ class watcher {
   /** 清空依赖队列 */
   cleanupDep() {
 
+  }
+
+  // 将当前的 dep 与 当前的 wacher 关联
+  addDep( dep) {
+    this.deps.push(dep);
   }
 }

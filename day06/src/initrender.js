@@ -13,7 +13,7 @@ JGVue.prototype.mountComponent = function() {
   mount(); //本质上应该交给 watcher 来调用
 
   // 为什么
-  Dep.target = new watcher(this, mount );  // 使用发布订阅模式,渲染和计算的行为应该交给 watcher 来完成
+  new watcher(this, mount );  // 使用发布订阅模式,渲染和计算的行为应该交给 watcher 来完成
 }
 
 // 这里是生成 render 函数，目的是缓存 抽象语法树 （我们使用的 虚拟DOM 来模拟）

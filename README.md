@@ -356,6 +356,12 @@ Vue 模型
   - 也就表示**再次**往全局存储的只有该组件的 watcher
   - 页面更新的时候也就只需要更新一部分
 
+diff
+
+我们先根据真实DOM生成一颗 virtual DOM ，当 virtual DOM 某个节点的数据改变后会生成一个新的 Vnode ，然后 Vnode 和 oldVnode 作对比，发现有不一样的地方就直接修改在真实的DOM上，然后使 oldVnode 的值为 Vnode 。
+
+diff的过程就是调用名为 patch 的函数，比较新旧节点，一边比较一边给 真实的DOM 打补丁。
+
 # 改写 observer 函数
 
 缺陷：
@@ -433,3 +439,7 @@ subs 中存储了 **知道渲染什么属性的 watcher**
 # Observer 对象
 
 ## 主要起到的作用是数据发生读取或者访问的时候，在进行依赖收集的时候，对子成员进行收集。
+
+# 梳理 watcher 与 Dep 与 属性的关系
+
+假设： 有三个属性 name, age, gender。 页面将三个属性渲染出来  

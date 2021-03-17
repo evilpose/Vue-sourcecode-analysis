@@ -146,6 +146,8 @@ export function remove (arr: Array<any>, item: any): Array<any> | void {
 
 /**
  * Check whether an object has the property.
+ * 
+ * 面试会经常问到的方法：生成带有缓存的 函数 （ 闭包的应用 ）
  */
 const hasOwnProperty = Object.prototype.hasOwnProperty
 export function hasOwn (obj: Object | Array<*>, key: string): boolean {
@@ -158,10 +160,22 @@ export function hasOwn (obj: Object | Array<*>, key: string): boolean {
 export function cached<F: Function> (fn: F): F {
   const cache = Object.create(null)
   return (function cachedFn (str: string) {
-    const hit = cache[str]
+    const hit = cache[str]  // 如果已缓存，hit 就是有数据的，如果未缓存 hit 就是 undefined 
     return hit || (cache[str] = fn(str))
   }: any)
 }
+
+/**
+ * let hit =  cached[str];
+ * if (hit === undefined) {
+ *  let res = fn(str);
+ *  cached[str] = res;
+ *  return res;
+ * } else {
+ *  return hit;
+ * }
+ * 
+ */
 
 /**
  * Camelize a hyphen-delimited string.
@@ -185,6 +199,19 @@ const hyphenateRE = /\B([A-Z])/g
 export const hyphenate = cached((str: string): string => {
   return str.replace(hyphenateRE, '-$1').toLowerCase()
 })
+
+/**
+ *  vue 运行再浏览器中，所以需要考虑性能
+    每次数据的更新 -> 虚拟 DOM 的生成（ 模板解析的行为 ） -> 因此将经常使用的字符串与算法进行缓存
+    再垃圾回收的原则中，有一个统计的现象，使用越多的数据，一般都会频繁的使用
+    1. 每次创建一个数据，我们就会考虑是都将其回收
+    2. 在数据达到一定限额的时候，就会考虑将数据回收（ 回收不是实时的 ）
+      - 如果每次都要判断对象是否需要回收，那么就需要遍历
+      - 将对象进行一个划分，统计，往往一个数据使用完以后就不需要使用了
+      - 一个对象如果在一次回收之后还保留下来，统计的结果是这个对象会比较持久的在内存中驻留
+    我们在模板中常常会使用 “ 指令 ” ，在 vue 中是一个 xx-xx-xx 的形式出现的属性（v-xx）
+    每次数据的更新都可能会带来 指令 的解析，所以解析就是字符串处理，一般会消耗一定的性能
+ */
 
 /**
  * Simple bind polyfill for environments that do not support it,
